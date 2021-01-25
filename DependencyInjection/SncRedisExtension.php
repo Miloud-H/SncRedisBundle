@@ -292,6 +292,7 @@ class SncRedisExtension extends Extension
         $phpredisDef->addArgument(array_map('strval', $client['dsns']));
         $phpredisDef->addArgument($client['options']);
         $phpredisDef->addArgument($client['alias']);
+        $phpredisDef->addArgument($client['tls']);
         $phpredisDef->addTag('snc_redis.client', array('alias' => $client['alias']));
         $phpredisDef->setPublic(false);
 

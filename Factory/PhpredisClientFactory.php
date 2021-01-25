@@ -36,7 +36,7 @@ class PhpredisClientFactory
      * @throws InvalidConfigurationException
      * @throws \LogicException
      */
-    public function create($class, array $dsns, $options, $alias)
+    public function create($class, array $dsns, $options, $alias, $tls)
     {
         if (!is_a($class, \Redis::class, true)
             && !is_a($class, \RedisCluster::class, true)
@@ -56,10 +56,10 @@ class PhpredisClientFactory
                 throw new \LogicException('Cannot have more than 1 dsn with \Redis and \RedisArray is not supported yet.');
             }
 
-            return $this->createClient($parsedDsns[0], $class, $alias, $options);
+            return $this->createClient($parsedDsns[0], $class, $alias, $options, $tls);
         }
 
-        return $this->createClusterClient($parsedDsns, $class, $alias, $options);
+        return $this->createClusterClient($parsedDsns, $class, $alias, $options, $tls);
     }
 
     /**
@@ -73,7 +73,7 @@ class PhpredisClientFactory
      * @throws InvalidConfigurationException
      * @throws \LogicException
      */
-    private function createClusterClient(array $dsns, $class, $alias, array $options): \RedisCluster
+    private function createClusterClient(array $dsns, $class, $alias, array $options, array $tls): \RedisCluster
     {
         $args = [];
 
@@ -123,7 +123,7 @@ class PhpredisClientFactory
      * @return \Redis|Client
      * @throws InvalidConfigurationException
      */
-    private function createClient(RedisDsn $dsn, $class, $alias, array $options): \Redis
+    private function createClient(RedisDsn $dsn, $class, $alias, array $options, array $tls): \Redis
     {
         /** @var \Redis $client */
         if (is_a($class, Client::class, true)) {
@@ -151,6 +151,18 @@ class PhpredisClientFactory
         if (!empty($options['connection_persistent'])) {
             $connectParameters[] = $dsn->getPersistentId();
         }
+
+        $connectParameters[] = 0;
+        $connectParameters[] = 0;
+        $connectParameters[] = 0;
+        $connectParameters[] = [
+            'stream' => [
+                'local_cert' => $tls['cert_file'],
+                'local_pk' => $tls['pk_cert_file'],
+                'cafile' => $tls['ca_file'],
+                'verify_peer_name' => $tls['verify_peer_name'],
+            ]
+        ];
 
         if (!empty($options['connection_persistent'])) {
             $client->pconnect(...$connectParameters);
