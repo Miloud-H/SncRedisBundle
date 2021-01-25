@@ -152,17 +152,19 @@ class PhpredisClientFactory
             $connectParameters[] = $dsn->getPersistentId();
         }
 
-        $connectParameters[] = 0;
-        $connectParameters[] = 0;
-        $connectParameters[] = 0;
-        $connectParameters[] = [
-            'stream' => [
-                'local_cert' => $tls['cert_file'],
-                'local_pk' => $tls['pk_cert_file'],
-                'cafile' => $tls['ca_file'],
-                'verify_peer_name' => $tls['verify_peer_name'],
-            ]
-        ];
+        if (!empty($tls)){
+            $connectParameters[] = 0;
+            $connectParameters[] = 0;
+            $connectParameters[] = 0;
+            $connectParameters[] = [
+                'stream' => [
+                    'local_cert' => $tls['cert_file'],
+                    'local_pk' => $tls['pk_cert_file'],
+                    'cafile' => $tls['ca_file'],
+                    'verify_peer_name' => $tls['verify_peer_name'],
+                ]
+            ];
+        }
 
         if (!empty($options['connection_persistent'])) {
             $client->pconnect(...$connectParameters);
